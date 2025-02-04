@@ -31,15 +31,8 @@ MURA-MiniResNetV1 is a lightweight convolutional neural network inspired by ResN
 Run the following command to install the required dependencies: pip install torch torchvision albumentations pillow
 
 ## Training the Model  
-```python
-from model import MiniResNet
-import torch
-import torch.optim as optim
-import torch.nn as nn
-
-model = MiniResNet(num_classes=2)
-optimizer = optim.Adam(model.parameters(), lr=1e-4)
-criterion = nn.CrossEntropyLoss()
+To train the model, you must download the stanford MURA datset here: https://aimi.stanford.edu/datasets/mura-msk-xrays
+Then setup your own pathways for the datasets and set them up in line 50-51 in train.py
 
 ## The stage
 This model represents the first iteration in a larger project focused on improving automated diagnosis using medical imaging. 
