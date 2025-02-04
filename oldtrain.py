@@ -9,7 +9,6 @@ from model import MiniResNet
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 
-# MURA Dataset Class
 class MURADataset(torch.utils.data.Dataset):
     def __init__(self, root_dir, transform=None):
         self.root_dir = root_dir
@@ -17,7 +16,6 @@ class MURADataset(torch.utils.data.Dataset):
         self.image_paths = []
         self.labels = []
 
-        # Traverse dataset and load all images
         for root, _, files in os.walk(root_dir):
             for file in files:
                 if file.endswith(('.png', '.jpg', '.jpeg')):
@@ -49,8 +47,8 @@ learning_rate = 0.0003
 num_classes = 2
 
 # Data directories
-train_dir = r"D:\MURA-v1.1\MURA-v1.1\train"  # Contains all body parts
-val_dir = r"D:\MURA-v1.1\MURA-v1.1\valid"
+train_dir = r"TRAIN"  # Contains all body parts
+val_dir = r"VALID"
 
 # Data Transforms
 
@@ -65,37 +63,32 @@ transform = transforms.Compose([
     # Step 2: Elastic Transform (simulated tissue/bone deformation)
     transforms.RandomApply([
         transforms.GaussianBlur(kernel_size=3)  # Mimics elastic effects with slight blurring
-    ], p=0.5),  # Applied with 50% probability
+    ], p=0.5),  
     
-    # Step 4: Random Perspective Transform (simulates imperfect angles)
-    transforms.RandomPerspective(distortion_scale=0.1, p=0.3),  # 30% chance of perspective distortion
+    
+    transforms.RandomPerspective(distortion_scale=0.1, p=0.3),  
 
-    # Basic Augmentations
-    transforms.RandomHorizontalFlip(p=0.5),  # 50% chance of horizontal flip
-    transforms.Resize((224, 224)),  # Resize to input size for the CNN
-    transforms.ToTensor(),  # Convert to tensor
-    transforms.Normalize(mean=[0.485], std=[0.229])  # Normalize (ImageNet-like normalization)
+    
+    transforms.RandomHorizontalFlip(p=0.5),  
+    transforms.Resize((224, 224)),  
+    transforms.ToTensor(),  
+    transforms.Normalize(mean=[0.485], std=[0.229])  
 ])
-# Datasets and DataLoaders
+
 train_dataset = MURADataset(train_dir, transform=transform)
 val_dataset = MURADataset(val_dir, transform=transform)
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 val_loader = DataLoader(val_dataset, batch_size=batch_size)
 
-# Model Initialization
 model = MiniResNet(num_classes=num_classes).to(device)
 
-# Loss and Optimizer
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-
-# Learning Rate Scheduler
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)  # Halves LR every 10 epochs
-early_stopping_patience = 10  # Number of epochs to wait for improvement
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)  
+early_stopping_patience = 10  
 best_val_acc = 0
 patience_counter = 0
 
-# Training Function
 def train():
     best_val_acc = 0
     for epoch in range(epochs):
@@ -120,7 +113,7 @@ def train():
         train_accuracy = 100 * correct / total
         print(f'Epoch [{epoch+1}/{epochs}]: Train Loss: {total_loss / len(train_loader):.4f}, Train Accuracy: {train_accuracy:.2f}%')
 
-        # Validation
+        
         model.eval()
         val_loss = 0
         val_correct = 0
@@ -140,18 +133,15 @@ def train():
         val_accuracy = 100 * val_correct / val_total
         print(f'Val Loss: {val_loss / len(val_loader):.4f}, Val Accuracy: {val_accuracy:.2f}%')
 
-        # Save the best model
         if val_accuracy > best_val_acc:
             best_val_acc = val_accuracy
             torch.save(model.state_dict(), "best_model.pth")
             print(f"New best model saved with validation accuracy: {best_val_acc:.2f}%")
 
-        # Step the scheduler
         scheduler.step()
 
         print("------------------------------------------------------------")
 
-# Main Function
 if __name__ == '__main__':
     print("Starting Training...")
     train()
